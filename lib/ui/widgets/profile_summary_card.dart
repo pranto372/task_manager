@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager/ui/controllers/auth_controller.dart';
 import 'package:task_manager/ui/screens/edit_profile_screen.dart';
+import 'package:task_manager/ui/screens/login_screen.dart';
 
 class ProfileSummaryCard extends StatelessWidget {
   const ProfileSummaryCard({
@@ -27,15 +29,25 @@ class ProfileSummaryCard extends StatelessWidget {
         child: Icon(Icons.person),
       ),
       title: Text(
-        "Pranto Deb",
+        fullName,
         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
       ),
       subtitle: Text(
-        "Prantodeb62@gmail.com",
+        AuthController.user?.email ?? '',
         style: TextStyle(color: Colors.white),
       ),
-      trailing: enableOnTap? Icon(Icons.arrow_forward) : null,
+      trailing: IconButton(
+        onPressed: () async{
+          await AuthController.clearAuthData();
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+              builder: (context)=> const LoginScreen()), (route) => false);
+        },
+        icon: const Icon(Icons.logout, color: Colors.white,),
+      ),
       tileColor: Colors.green,
     );
+  }
+  String get fullName{
+    return '${AuthController.user?.firstName ?? ''}  ${AuthController.user?.lastName ?? ')'}';
   }
 }
