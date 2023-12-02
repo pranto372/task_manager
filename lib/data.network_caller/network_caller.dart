@@ -13,6 +13,7 @@ class NetworkCaller {
       {Map<String, dynamic>? body, bool isLogin = false}) async {
     try {
       log(url);
+      print(AuthController.token.toString());
       log(body.toString());
       final Response response =
           await post(Uri.parse(url), body: jsonEncode(body), headers: {
@@ -53,7 +54,7 @@ class NetworkCaller {
     try {
       log(url);
       final Response response =
-      await post(Uri.parse(url), headers: {
+      await get(Uri.parse(url), headers: {
         'Content-type': 'application/json',
         'token' : AuthController.token.toString(),
       });

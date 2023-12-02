@@ -168,6 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {});
     }
     if(response.isSuccess){
+      print("okay logged!");
       await AuthController.saveUserInformation(
           response.jsonResponse['token'], UserModel.fromJson(response.jsonResponse['data']));
       if(mounted) {
