@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:task_manager/ui/controllers/auth_controller.dart';
 import 'package:task_manager/ui/screens/edit_profile_screen.dart';
@@ -13,6 +16,15 @@ class ProfileSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String imageData = AuthController.user!.photo!.split("data:image/png;base64")[0];
+    String base64String = AuthController.user?.photo ?? '';
+    if (base64String.startsWith('data:image')) {
+      // Remove data URI prefix if present
+      base64String =
+          base64String.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+    }
+    print(base64String);
+    Uint8List imageBytes = Base64Decoder().convert(base64String);
     return ListTile(
       onTap: () {
         if (enableOnTap) {
@@ -26,7 +38,9 @@ class ProfileSummaryCard extends StatelessWidget {
       },
       leading: CircleAvatar(
         backgroundColor: Colors.grey,
-        child: Icon(Icons.person),
+        child: AuthController.user?.photo == null
+            ? Icon(Icons.person)
+            : Image.memory(imageBytes),
       ),
       title: Text(
         fullName,

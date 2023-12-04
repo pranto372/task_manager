@@ -71,7 +71,6 @@ class _TaskItemCardState extends State<TaskItemCard> {
                     IconButton(
                         onPressed: () {
                           showUpdateStatusModal();
-                          Navigator.pop(context);
                         },
                         icon: Icon(Icons.edit)),
                   ],
@@ -84,8 +83,6 @@ class _TaskItemCardState extends State<TaskItemCard> {
     );
   }
   void showUpdateStatusModal(){
-    
-    
     List<ListTile> items = TaskStatus.values
         .map((e) => ListTile(
               title: Text('${e.name}'),
@@ -107,7 +104,9 @@ class _TaskItemCardState extends State<TaskItemCard> {
           ButtonBar(
             children: [
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                       child: Text(
                         'Cancel',
                         style: TextStyle(color: Colors.blueGrey),
