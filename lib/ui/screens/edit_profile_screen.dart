@@ -25,7 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _lastNameTEController = TextEditingController();
   final TextEditingController _mobileTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
-
+  final _formKey = GlobalKey<FormState>();
   bool _updateProfileInProgress = false;
 
   XFile? photo;
@@ -53,86 +53,104 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 32,
-                        ),
-                        Text(
-                          "Update Profile",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        photoPickerField(),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        TextFormField(
-                          controller: _emailTEController,
-                          decoration: InputDecoration(hintText: "E-mail"),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        TextFormField(
-                          controller: _firstNameTEController,
-                          decoration: InputDecoration(hintText: "First Name"),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        TextFormField(
-                          controller: _lastNameTEController,
-                          decoration: InputDecoration(hintText: "Last Name"),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        TextFormField(
-                          controller: _mobileTEController,
-                          decoration: InputDecoration(hintText: "Mobile"),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        TextFormField(
-                          controller: _passwordTEController,
-                          decoration:
-                              InputDecoration(hintText: "Password (Optional)"),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: Visibility(
-                            visible: _updateProfileInProgress == false,
-                            replacement: const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.green,
-                              ),
-                            ),
-                            child: ElevatedButton(
-                              onPressed: updateProfile,
-                              child: Icon(
-                                Icons.arrow_circle_right_outlined,
-                                color: Colors.white,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10))),
-                            ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            height: 32,
                           ),
-                        ),
-                      ],
+                          Text(
+                            'Update Profile',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          photoPickerField(),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextFormField(
+                            controller: _emailTEController,
+                            decoration:
+                            const InputDecoration(hintText: 'Email'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty || !value.contains('@')) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextFormField(
+                            controller: _firstNameTEController,
+                            decoration:
+                            const InputDecoration(hintText: 'First name'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your First name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextFormField(
+                            controller: _lastNameTEController,
+                            decoration:
+                            const InputDecoration(hintText: 'Last name'),
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextFormField(
+                            controller: _mobileTEController,
+                            decoration:
+                            const InputDecoration(hintText: 'Mobile'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your Mobile';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          TextFormField(
+                            controller: _passwordTEController,
+                            decoration: const InputDecoration(
+                                hintText: 'Password (optional)'),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Visibility(
+                              visible: _updateProfileInProgress == false,
+                              replacement: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              child: ElevatedButton(
+                                onPressed: updateProfile,
+                                child: const Icon(
+                                    Icons.arrow_circle_right_outlined, color: Colors.white,),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -140,48 +158,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> updateProfile() async {
-    _updateProfileInProgress = true;
-    if (mounted) {
-      setState(() {});
-    }
-    String? photoInBase64;
-    Map<String, dynamic> inputData = {
-      "email": _emailTEController.text.trim(),
-      "firstName": _firstNameTEController.text.trim(),
-      "lastName": _lastNameTEController.text.trim(),
-      "mobile": _mobileTEController.text.trim(),
-      "password": _passwordTEController.text.trim(),
-    };
-    if (_passwordTEController.text.isNotEmpty) {
-      inputData['password'] = _passwordTEController.text;
-    }
-
-    if(photo != null){
-      List<int> imageBytes = await photo!.readAsBytes();
-      String photoInBase64 = base64Encode(imageBytes);
-      inputData ['photo'] = photoInBase64;
-    }
-
-    final NetworkResponse response =
-        await NetworkCaller().postRequest(Urls.updateProfile, body: inputData);
-    _updateProfileInProgress = false;
-    if (mounted) {
-      setState(() {});
-    }
-    if (response.isSuccess) {
+    if (_formKey.currentState!.validate()) {
+      _updateProfileInProgress = true;
       if (mounted) {
-        AuthController.updateUserInformation(UserModel(
-          email: _emailTEController.text.trim(),
-          firstName: _firstNameTEController.text.trim(),
-          lastName: _lastNameTEController.text.trim(),
-          mobile: _mobileTEController.text.trim(),
-          photo: photoInBase64 ?? AuthController.user?.photo
-        ));
-        showSnackMessage(context, 'Update profile success!');
+        setState(() {});
       }
-    } else {
+      String? photoInBase64;
+      Map<String, dynamic> inputData = {
+        "firstName": _firstNameTEController.text.trim(),
+        "lastName": _lastNameTEController.text.trim(),
+        "email": _emailTEController.text.trim(),
+        "mobile": _mobileTEController.text.trim(),
+      };
+
+      if (_passwordTEController.text.isNotEmpty) {
+        inputData['password'] = _passwordTEController.text;
+      }
+
+      if (photo != null) {
+        List<int> imageBytes = await photo!.readAsBytes();
+        photoInBase64 = base64Encode(imageBytes);
+        inputData['photo'] = photoInBase64;
+      }
+
+      final NetworkResponse response = await NetworkCaller().postRequest(
+        Urls.updateProfile,
+        body: inputData,
+      );
+      _updateProfileInProgress = false;
       if (mounted) {
-        showSnackMessage(context, 'Update profile failed!');
+        setState(() {});
+      }
+      if (response.isSuccess) {
+        AuthController.updateUserInformation(UserModel(
+            email: _emailTEController.text.trim(),
+            firstName: _firstNameTEController.text.trim(),
+            lastName: _lastNameTEController.text.trim(),
+            mobile: _mobileTEController.text.trim(),
+            photo: photoInBase64 ?? AuthController.user?.photo));
+        if (mounted) {
+          showSnackMessage(context, 'Update profile success!');
+        }
+      } else {
+        if (mounted) {
+          showSnackMessage(context, 'Update profile failed. Try again.');
+        }
       }
     }
   }
@@ -190,24 +211,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
+          color: Colors.white, borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
           Expanded(
             flex: 1,
             child: Container(
               height: 50,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                   color: Colors.grey,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(8),
                     bottomLeft: Radius.circular(8),
                   )),
               alignment: Alignment.center,
-              child: Text(
-                "Photo",
+              child: const Text(
+                'Photo',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -216,20 +235,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             flex: 3,
             child: InkWell(
               onTap: () async {
-                final XFile? image =
-                    await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
-                if(image != null){
+                final XFile? image = await ImagePicker()
+                    .pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (image != null) {
                   photo = image;
+                  if (mounted) {
+                    setState(() {});
+                  }
                 }
               },
               child: Container(
-                padding: EdgeInsets.only(left: 16),
+                padding: const EdgeInsets.only(left: 16),
                 child: Visibility(
                   visible: photo == null,
                   replacement: Text(photo?.name ?? ''),
-                  child: Text(
-                    "Select a photo",
-                  ),
+                  child: const Text('Select a photo'),
                 ),
               ),
             ),

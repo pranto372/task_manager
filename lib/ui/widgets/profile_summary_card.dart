@@ -6,7 +6,7 @@ import 'package:task_manager/ui/controllers/auth_controller.dart';
 import 'package:task_manager/ui/screens/edit_profile_screen.dart';
 import 'package:task_manager/ui/screens/login_screen.dart';
 
-class ProfileSummaryCard extends StatelessWidget {
+class ProfileSummaryCard extends StatefulWidget {
   const ProfileSummaryCard({
     super.key,
     this.enableOnTap = true,
@@ -15,19 +15,18 @@ class ProfileSummaryCard extends StatelessWidget {
   final bool enableOnTap;
 
   @override
+  State<ProfileSummaryCard> createState() => _ProfileSummaryCardState();
+}
+
+class _ProfileSummaryCardState extends State<ProfileSummaryCard> {
+  @override
   Widget build(BuildContext context) {
-    String imageData = AuthController.user!.photo!.split("data:image/png;base64")[0];
-    String base64String = AuthController.user?.photo ?? '';
-    if (base64String.startsWith('data:image')) {
-      // Remove data URI prefix if present
-      base64String =
-          base64String.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
-    }
-    print(base64String);
-    Uint8List imageBytes = Base64Decoder().convert(base64String);
+    Uint8List imageBytes = const Base64Decoder()
+        .convert(AuthController.user?.photo?.split(',').last ?? '');
+
     return ListTile(
       onTap: () {
-        if (enableOnTap) {
+        if (widget.enableOnTap) {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -37,31 +36,42 @@ class ProfileSummaryCard extends StatelessWidget {
         }
       },
       leading: CircleAvatar(
-        backgroundColor: Colors.grey,
         child: AuthController.user?.photo == null
-            ? Icon(Icons.person)
-            : Image.memory(imageBytes),
+            ? const Icon(Icons.person)
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.memory(
+                  imageBytes,
+                  fit: BoxFit.cover,
+                ),
+              ),
       ),
       title: Text(
         fullName,
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
       ),
       subtitle: Text(
         AuthController.user?.email ?? '',
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       trailing: IconButton(
-        onPressed: () async{
+        onPressed: () async {
           await AuthController.clearAuthData();
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-              builder: (context)=> const LoginScreen()), (route) => false);
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false);
+          }
         },
         icon: const Icon(Icons.logout, color: Colors.white,),
       ),
       tileColor: Colors.green,
     );
   }
-  String get fullName{
-    return '${AuthController.user?.firstName ?? ''}  ${AuthController.user?.lastName ?? ')'}';
+
+  String get fullName {
+    return '${AuthController.user?.firstName ?? ''} ${AuthController.user?.lastName ?? ')'}';
   }
 }
