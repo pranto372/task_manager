@@ -135,7 +135,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: Visibility(
                               visible: _updateProfileInProgress == false,
                               replacement: const Center(
-                                child: CircularProgressIndicator(),
+                                child: CircularProgressIndicator(color: Colors.green,),
                               ),
                               child: ElevatedButton(
                                 onPressed: updateProfile,
@@ -236,7 +236,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: InkWell(
               onTap: () async {
                 final XFile? image = await ImagePicker()
-                    .pickImage(source: ImageSource.camera, imageQuality: 50);
+                    .pickImage(source: ImageSource.gallery, imageQuality: 50);
                 if (image != null) {
                   photo = image;
                   if (mounted) {
