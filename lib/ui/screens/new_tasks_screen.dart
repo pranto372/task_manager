@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_manager/data.network_caller/data.utility/urls.dart';
 import 'package:task_manager/data.network_caller/network_caller.dart';
 import 'package:task_manager/data.network_caller/network_response.dart';
 import 'package:task_manager/data/models/task_count.dart';
 import 'package:task_manager/data/models/task_count_summary_list_model.dart';
-import 'package:task_manager/data/models/task_list_model.dart';
+import 'package:task_manager/ui/controllers/new_task_controller.dart';
 import 'package:task_manager/ui/screens/add_new_task_screen.dart';
 
 import '../widgets/profile_summary_card.dart';
@@ -19,9 +20,7 @@ class NewTasksScreen extends StatefulWidget {
 }
 
 class _NewTasksScreenState extends State<NewTasksScreen> {
-  bool getNewTaskInProgress = false;
   bool getTaskCountSummaryInProgress = false;
-  TaskListModel taskListModel = TaskListModel();
   TaskCountSummaryListModel taskCountSummaryListModel = TaskCountSummaryListModel();
 
   Future<void> getTaskCountSummaryList() async {
@@ -39,32 +38,16 @@ class _NewTasksScreenState extends State<NewTasksScreen> {
     }
   }
 
-  Future<void> getNewTaskList() async {
-    getNewTaskInProgress = true;
-    if (mounted) {
-      setState(() {});
-    }
-    final NetworkResponse response = await NetworkCaller().getRequest(Urls.getNewTasks);
-    if (response.isSuccess) {
-      taskListModel = TaskListModel.fromJson(response.jsonResponse);
-    }
-    getNewTaskInProgress = false;
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   @override
   void initState() {
     super.initState();
+    Get.find<NewTaskController>().getNewTaskList();
     getTaskCountSummaryList();
-    getNewTaskList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -89,7 +72,7 @@ class _NewTasksScreenState extends State<NewTasksScreen> {
               visible: getTaskCountSummaryInProgress == false &&
                   (taskCountSummaryListModel.taskCountList?.isNotEmpty ??
                       false),
-              replacement: const LinearProgressIndicator(color: Colors.green,),
+              replacement: const LinearProgressIndicator(),
               child: SizedBox(
                 height: 120,
                 child: ListView.builder(
@@ -109,30 +92,29 @@ class _NewTasksScreenState extends State<NewTasksScreen> {
               ),
             ),
             Expanded(
-              child: Visibility(
-                visible: getNewTaskInProgress == false,
-                replacement: const Center(child: CircularProgressIndicator(color: Colors.green,)),
-                child: RefreshIndicator(
-                  onRefresh: getNewTaskList,
-                  child: ListView.builder(
-                    itemCount: taskListModel.taskList?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      return TaskItemCard(
-                        task: taskListModel.taskList![index],
-                        onStatusChange: () {
-                          getNewTaskList();
-                          getTaskCountSummaryList();
-                        },
-                        showProgress: (inProgress) {
-                          getNewTaskInProgress = inProgress;
-                          if (mounted) {
-                            setState(() {});
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
+              child: GetBuilder<NewTaskController>(
+                  builder: (newTaskController) {
+                    return Visibility(
+                      visible: newTaskController.getNewTaskInProgress == false,
+                      replacement: const Center(child: CircularProgressIndicator(color: Colors.green,)),
+                      child: RefreshIndicator(
+                        onRefresh: () => newTaskController.getNewTaskList(),
+                        child: ListView.builder(
+                          itemCount: newTaskController.taskListModel.taskList?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            return TaskItemCard(
+                              task: newTaskController.taskListModel.taskList![index],
+                              onStatusChange: () {
+                                newTaskController.getNewTaskList();
+                              },
+                              showProgress: (inProgress) {
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  }
               ),
             ),
           ],
@@ -141,4 +123,3 @@ class _NewTasksScreenState extends State<NewTasksScreen> {
     );
   }
 }
-
